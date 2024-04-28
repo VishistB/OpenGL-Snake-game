@@ -8,35 +8,112 @@
 #define SCREEN_WIDTH  1280
 #define SCREEN_HEIGHT 720
 #define CELL_SIZE      20
+#define NUM_OBSTACLES  10 // Adjust the number of obstacles as needed
 
 enum Direction { UP, DOWN, LEFT, RIGHT };
 Direction snakeDirection = RIGHT;
 
-//snake segments
+// Snake segments
 struct SnakeSegment {
     int x;
     int y;
 };
 
-//snake body parts
+// Vector to store snake body parts
 std::vector<SnakeSegment> snakeSegments;
 
-//food coords
+// Food coordinates
 int foodX, foodY;
+
+// Vector to store obstacle coordinates
+std::vector<std::pair<int, int>> obstacles;
 
 // Game over flag
 bool gameOver = false;
 
+bool checkFoodCollision() {
+    for (const auto& obstacle : obstacles) {
+        if (foodX == obstacle.first && foodY == obstacle.second)
+            return true;
+    }
+    return false;
+}
+
 void init() {
-    // Clear existing segments
+    // Clear existing segments and obstacles
     snakeSegments.clear();
+    obstacles.clear();
+
     // Add initial segment
     snakeSegments.push_back({ SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 });
 
     srand(time(nullptr));
     // Generate random food position
-    foodX = rand() % (SCREEN_WIDTH / CELL_SIZE) * CELL_SIZE;
-    foodY = rand() % (SCREEN_HEIGHT / CELL_SIZE) * CELL_SIZE;
+    do {
+        foodX = rand() % (SCREEN_WIDTH / CELL_SIZE) * CELL_SIZE;
+        foodY = rand() % (SCREEN_HEIGHT / CELL_SIZE) * CELL_SIZE;
+    } while (checkFoodCollision());
+
+    // Generate random obstacles
+    for (int i = 0; i < NUM_OBSTACLES; ++i) {
+        int obstacleX = rand() % (SCREEN_WIDTH / CELL_SIZE) * CELL_SIZE;
+        int obstacleY = rand() % (SCREEN_HEIGHT / CELL_SIZE) * CELL_SIZE;
+
+        // Randomly choose whether to add a shape or a single obstacle
+        if (rand() % 2 == 0) {
+            // Add a random connected shape
+            int shapeType = rand() % 3; // Three possible shapes
+            switch (shapeType) {
+            case 0: // Shape 1
+                obstacles.push_back({ obstacleX, obstacleY });
+                obstacles.push_back({ obstacleX + CELL_SIZE, obstacleY });
+                obstacles.push_back({ obstacleX, obstacleY + CELL_SIZE });
+                obstacles.push_back({ obstacleX - CELL_SIZE, obstacleY + CELL_SIZE });
+                obstacles.push_back({ obstacleX - CELL_SIZE * 2, obstacleY + CELL_SIZE });
+                break;
+            case 1: // Shape 2
+                obstacles.push_back({ obstacleX, obstacleY });
+                obstacles.push_back({ obstacleX + CELL_SIZE, obstacleY });
+                obstacles.push_back({ obstacleX + CELL_SIZE * 2, obstacleY });
+                obstacles.push_back({ obstacleX + CELL_SIZE * 2, obstacleY + CELL_SIZE });
+                obstacles.push_back({ obstacleX + CELL_SIZE, obstacleY + CELL_SIZE });
+                obstacles.push_back({ obstacleX, obstacleY + CELL_SIZE });
+                break;
+            case 2: // Shape 3
+                obstacles.push_back({ obstacleX, obstacleY });
+                obstacles.push_back({ obstacleX + CELL_SIZE, obstacleY });
+                obstacles.push_back({ obstacleX + CELL_SIZE * 2, obstacleY });
+                obstacles.push_back({ obstacleX + CELL_SIZE * 3, obstacleY });
+                obstacles.push_back({ obstacleX + CELL_SIZE * 3, obstacleY + CELL_SIZE });
+                obstacles.push_back({ obstacleX + CELL_SIZE * 2, obstacleY + CELL_SIZE });
+                obstacles.push_back({ obstacleX + CELL_SIZE, obstacleY + CELL_SIZE });
+                obstacles.push_back({ obstacleX, obstacleY + CELL_SIZE });
+                break;
+            case 3: // Shape 4
+                obstacles.push_back({ obstacleX, obstacleY });
+                obstacles.push_back({ obstacleX + CELL_SIZE, obstacleY });
+                obstacles.push_back({ obstacleX + CELL_SIZE * 2, obstacleY });
+                obstacles.push_back({ obstacleX + CELL_SIZE * 2, obstacleY + CELL_SIZE });
+                obstacles.push_back({ obstacleX + CELL_SIZE, obstacleY + CELL_SIZE });
+                obstacles.push_back({ obstacleX + CELL_SIZE, obstacleY + CELL_SIZE * 2 });
+                break;
+            case 4: // Shape 5
+                obstacles.push_back({ obstacleX, obstacleY });
+                obstacles.push_back({ obstacleX + CELL_SIZE, obstacleY });
+                obstacles.push_back({ obstacleX + CELL_SIZE, obstacleY + CELL_SIZE });
+                obstacles.push_back({ obstacleX + CELL_SIZE * 2, obstacleY + CELL_SIZE });
+                obstacles.push_back({ obstacleX + CELL_SIZE * 2, obstacleY + CELL_SIZE * 2 });
+                obstacles.push_back({ obstacleX + CELL_SIZE, obstacleY + CELL_SIZE * 2 });
+                obstacles.push_back({ obstacleX, obstacleY + CELL_SIZE * 2 });
+                break;
+
+            }
+        }
+        else {
+            // Add a single obstacle
+            obstacles.push_back({ obstacleX, obstacleY });
+        }
+    }
 }
 
 void update(int value) {
@@ -60,9 +137,17 @@ void update(int value) {
         }
 
         // Check for collision with boundary
-        if (head.x <= 0 || head.x >= SCREEN_WIDTH ||
-            head.y <= 0 || head.y >= SCREEN_HEIGHT) {
+        if (head.x < 0 || head.x >= SCREEN_WIDTH ||
+            head.y < 0 || head.y >= SCREEN_HEIGHT) {
             gameOver = true;
+        }
+
+        // Check for collision with obstacles
+        for (const auto& obstacle : obstacles) {
+            if (head.x == obstacle.first && head.y == obstacle.second) {
+                gameOver = true;
+                break;
+            }
         }
 
         // Check for collision with snake body
@@ -75,8 +160,10 @@ void update(int value) {
 
         // Snake food consumption check
         if (head.x == foodX && head.y == foodY) {
-            foodX = rand() % (SCREEN_WIDTH / CELL_SIZE) * CELL_SIZE;
-            foodY = rand() % (SCREEN_HEIGHT / CELL_SIZE) * CELL_SIZE;
+            do {
+                foodX = rand() % (SCREEN_WIDTH / CELL_SIZE) * CELL_SIZE;
+                foodY = rand() % (SCREEN_HEIGHT / CELL_SIZE) * CELL_SIZE;
+            } while (checkFoodCollision());
 
             // Increase the length of the snake
             snakeSegments.push_back({ head.x, head.y });
@@ -126,6 +213,17 @@ void display() {
         }
     }
     else {
+        // Draw obstacles
+        glColor3f(0.5f, 0.5f, 0.5f); // Gray color for obstacles
+        for (const auto& obstacle : obstacles) {
+            glBegin(GL_QUADS);
+            glVertex2i(obstacle.first, obstacle.second);
+            glVertex2i(obstacle.first + CELL_SIZE, obstacle.second);
+            glVertex2i(obstacle.first + CELL_SIZE, obstacle.second + CELL_SIZE);
+            glVertex2i(obstacle.first, obstacle.second + CELL_SIZE);
+            glEnd();
+        }
+
         // Draw snake segments
         glColor3f(0.0f, 1.0f, 0.0f);
         for (const auto& segment : snakeSegments) {
@@ -138,12 +236,16 @@ void display() {
         }
 
         // Draw food
-        glColor3f(1.0f, 0.0f, 0.0f);
-        glBegin(GL_QUADS);
-        glVertex2i(foodX, foodY);
-        glVertex2i(foodX + CELL_SIZE, foodY);
-        glVertex2i(foodX + CELL_SIZE, foodY + CELL_SIZE);
-        glVertex2i(foodX, foodY + CELL_SIZE);
+        glColor3f(1.0f, 0.0f, 0.0f); // Red color for food
+        glBegin(GL_TRIANGLE_FAN);
+        //circle midpt
+        glVertex2f(foodX + CELL_SIZE / 2.0f, foodY + CELL_SIZE / 2.0f);
+        for (int i = 0; i <= 360; ++i) {
+            float angle = i * 3.1415926535897932384626433832795 / 180;
+            float x = foodX + CELL_SIZE / 2.0f + cos(angle) * CELL_SIZE / 2.0f;
+            float y = foodY + CELL_SIZE / 2.0f + sin(angle) * CELL_SIZE / 2.0f;
+            glVertex2f(x, y);
+        }
         glEnd();
 
         // Display score
