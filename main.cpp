@@ -8,7 +8,7 @@
 #define SCREEN_WIDTH  1280
 #define SCREEN_HEIGHT 720
 #define CELL_SIZE      20
-#define NUM_OBSTACLES  10 // Adjust the number of obstacles as needed
+#define NUM_OBSTACLES  20
 
 enum Direction { UP, DOWN, LEFT, RIGHT };
 Direction snakeDirection = RIGHT;
@@ -330,7 +330,7 @@ int main(int argc, char** argv) {
     init();
 
     // Call update function to move snake
-    glutTimerFunc(100, update, 0);
+    glutTimerFunc(1000, update, 0);
 
     // Enter GLUT event processing loop
     glutMainLoop();
