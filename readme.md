@@ -1,4 +1,4 @@
-* Open GL Snake Game with random obstacle generation
+# Open GL Snake Game with random obstacle generation
 
 ![alt text](<Screenshot snake game-1.png>)
 
@@ -6,7 +6,7 @@ This Project is a slight modification of the classic Snake Game with randomized 
 generation for each time the game is started.
 It has been built using GLUT - OpenGL Utility Toolkit.
 
-* How to run
+# How to run
 
 - Download GLUT for open GL.
 
